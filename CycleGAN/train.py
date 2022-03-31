@@ -11,7 +11,7 @@ from torchvision.utils import save_image
 from discriminator_model import Discriminator
 from generator_model import Generator
 
-def train_fn(disc_H, disc_Z, gen_Z, gen_H, loader, opt_disc, opt_gen, l1, mse, d_scaler, g_scaler):
+def train_fn(disc_H, disc_Z, gen_Z, gen_H, loader, opt_disc, opt_gen, l1, mse, d_scaler, g_scaler, HowManyEpochs):
     H_reals = 0
     H_fakes = 0
     loop = tqdm(loader, leave=True)
@@ -82,8 +82,8 @@ def train_fn(disc_H, disc_Z, gen_Z, gen_H, loader, opt_disc, opt_gen, l1, mse, d
         g_scaler.update()
 
         if idx % 200 == 0:
-            save_image(fake_horse*0.5+0.5, f"saved_images/horse_{idx}.png")
-            save_image(fake_zebra*0.5+0.5, f"saved_images/zebra_{idx}.png")
+            save_image(fake_horse*0.5+0.5, f"saved_images/{HowManyEpochs}epochs_horse_{idx}.png")
+            save_image(fake_zebra*0.5+0.5, f"saved_images/{HowManyEpochs}epochs_zebra_{idx}.png")
 
         loop.set_postfix(H_real=H_reals/(idx+1), H_fake=H_fakes/(idx+1))
 
@@ -126,8 +126,10 @@ def main():
     dataset = HorseZebraDataset(
         root_horse=config.TRAIN_DIR+"/horses", root_zebra=config.TRAIN_DIR+"/zebras", transform=config.transforms
     )
+    
+    # @@@@@@@@@@@@ 사용안되었음 @@@@@@@@@@@@
     val_dataset = HorseZebraDataset(
-       root_horse="cyclegan_test/horse1", root_zebra="cyclegan_test/zebra1", transform=config.transforms
+       root_horse=config.VAL_DIR+"/horses", root_zebra=config.VAL_DIR+"/zebras", transform=config.transforms
     )
     val_loader = DataLoader(
         val_dataset,
@@ -135,6 +137,8 @@ def main():
         shuffle=False,
         pin_memory=True,
     )
+    # @@@@@@@@@@@@ 사용안되었음 @@@@@@@@@@@@
+
     loader = DataLoader(
         dataset,
         batch_size=config.BATCH_SIZE,
@@ -146,7 +150,8 @@ def main():
     d_scaler = torch.cuda.amp.GradScaler()
 
     for epoch in range(config.NUM_EPOCHS):
-        train_fn(disc_H, disc_Z, gen_Z, gen_H, loader, opt_disc, opt_gen, L1, mse, d_scaler, g_scaler)
+        
+        train_fn(disc_H, disc_Z, gen_Z, gen_H, loader, opt_disc, opt_gen, L1, mse, d_scaler, g_scaler, epoch)
 
         if config.SAVE_MODEL:
             save_checkpoint(gen_H, opt_gen, filename=config.CHECKPOINT_GEN_H)

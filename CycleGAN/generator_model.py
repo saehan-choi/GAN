@@ -53,6 +53,7 @@ class Generator(nn.Module):
         self.last = nn.Conv2d(num_features*1, img_channels, kernel_size=7, stride=1, padding=3, padding_mode="reflect")
 
     def forward(self, x):
+
         x = self.initial(x)
         for layer in self.down_blocks:
             x = layer(x)
@@ -65,7 +66,9 @@ def test():
     img_channels = 3
     img_size = 256
     x = torch.randn((2, img_channels, img_size, img_size))
+    
     gen = Generator(img_channels, 9)
+    
     print(gen(x).shape)
 
 if __name__ == "__main__":
